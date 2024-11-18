@@ -28,7 +28,7 @@ public:
   PAN_TILT()
   : Node("pan_tilt_node")
   {
-    motor_dxl_Publisher = this->create_publisher<dynamixel_rdk_msgs::msg::DynamixelMsgs>("topic", 10);
+    motor_dxl_Publisher = this->create_publisher<dynamixel_rdk_msgs::msg::DynamixelControlMsgs>("pan_tilt_dxl", 10);
 
 
     id = 32;
@@ -39,7 +39,7 @@ public:
   PAN_TILT(int id_,double pan_init_)
   : Node("pan_tilt_node")
   {
-    motor_dxl_Publisher = this->create_publisher<dynamixel_rdk_msgs::msg::DynamixelMsgs>("topic", 10);
+    motor_dxl_Publisher = this->create_publisher<dynamixel_rdk_msgs::msg::DynamixelControlMsgs>("pan_tilt_dxl", 10);
 
 
     id = id_;
@@ -174,8 +174,9 @@ public:
 protected:
 
 private:
-  rclcpp::Publisher<dynamixel_rdk_msgs::msg::DynamixelMsgs>::SharedPtr motor_dxl_Publisher;
+  rclcpp::Publisher<dynamixel_rdk_msgs::msg::DynamixelControlMsgs>::SharedPtr motor_dxl_Publisher;
   dynamixel_rdk_msgs::msg::DynamixelMsgs dxl;
+  dynamixel_rdk_msgs::msg::DynamixelControlMsgs dxl_control;
 
   int id = 32;
   float velocity = 1;
@@ -189,7 +190,9 @@ private:
     dxl.profile_velocity = velocity;
     dxl.profile_acceleration = acceleration;
 
-    motor_dxl_Publisher->publish(dxl);
+    dxl_control.motor_control.push_back(dxl);
+
+    motor_dxl_Publisher->publish(dxl_control);
   }
 
     void init()
