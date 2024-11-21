@@ -193,6 +193,8 @@ private:
     dxl_control.motor_control.push_back(dxl);
 
     motor_dxl_Publisher->publish(dxl_control);
+
+    dxl_control.motor_control.clear();
   }
 
     void init()
