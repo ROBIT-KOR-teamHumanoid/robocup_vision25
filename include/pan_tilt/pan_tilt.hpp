@@ -10,7 +10,7 @@
 #include "rclcpp/rclcpp.hpp"
 
 #define ROBOT_HEIGHT      600//490//475// 505//545// 755.0//544
-#define TILT_L              20//65.0//75.0
+#define TILT_L              0//65.0//75.0
 #define TILT_D              -49
 #define DEG2RAD (M_PI / 180)
 #define RAD2DEG (180 / M_PI)
@@ -28,18 +28,18 @@ public:
   PAN_TILT()
   : Node("pan_tilt_node")
   {
-    motor_dxl_Publisher = this->create_publisher<dynamixel_rdk_msgs::msg::DynamixelControlMsgs>("pan_tilt_dxl", 10);
+    motor_dxl_Publisher = this->create_publisher<dynamixel_rdk_msgs::msg::DynamixelControlMsgs>("dynamixel_control2", 10);
 
 
     id = 32;
-    ptpos.PAN_POSITION = 1024;
-    ptpos.TILT_POSITION = 2048;
+    ptpos.PAN_POSITION = 0;
+    ptpos.TILT_POSITION = -45;
   }
 
   PAN_TILT(int id_,double pan_init_)
   : Node("pan_tilt_node")
   {
-    motor_dxl_Publisher = this->create_publisher<dynamixel_rdk_msgs::msg::DynamixelControlMsgs>("pan_tilt_dxl", 10);
+    motor_dxl_Publisher = this->create_publisher<dynamixel_rdk_msgs::msg::DynamixelControlMsgs>("dynamixel_control2", 10);
 
 
     id = id_;
@@ -91,46 +91,49 @@ public:
         }
         case 2:
         {
-            //case2!!!!!!!!!!!!!!!!!
-            //Ball 스캔
-            if(tracking_cnt > 0)//공이 잡혀서 트래킹
-            {
+            // //case2!!!!!!!!!!!!!!!!!
+            // //Ball 스캔
+            // if(tracking_cnt > 0)//공이 잡혀서 트래킹
+            // {
 
-                if(target_x != 0 || target_y != 0)
-                {
-                    Tracking_what(); //공 위치로 트래킹
-                    no_ball_cnt = 0;
-                }
-                else
-                {
-                    tracking_cnt = 0;
-                }
-                if(Scan_index == 1){Scan_nice_weight += 1;} //로봇이 정면을 보고 있는 경우 Scan_nice_weight +1
-                else{Scan_nice_weight = 0;}
-                if(Scan_nice_weight >= 5){return 1;} //로봇이 정면을 보고 있는 경우 1 반환
-                return 2; //로봇이 정면을 보고 있는 경우 2 반환
+            //     if(target_x != 0 || target_y != 0)
+            //     {
+            //         Tracking_what(); //공 위치로 트래킹
+            //         no_ball_cnt = 0;
+            //     }
+            //     else
+            //     {
+            //         tracking_cnt = 0;
+            //     }
+            //     if(Scan_index == 1){Scan_nice_weight += 1;} //로봇이 정면을 보고 있는 경우 Scan_nice_weight +1
+            //     else{Scan_nice_weight = 0;}
+            //     if(Scan_nice_weight >= 5){return 1;} //로봇이 정면을 보고 있는 경우 1 반환
+            //     return 2; //로봇이 정면을 보고 있는 경우 2 반환
 
-            }
-            else if(no_ball_cnt > 30)//공이 특정 시간동안 안잡힘
-            {
-                ptpos.PAN_POSITION = Scan_level[Scan_index];
-                send_ptmsg();
-                Scan_timer += 1;
-                if(Scan_timer >= Scan_stop_time) //스캔한 시간이 임계값을 넘겼을 경우
-                {
-                    Scan_timer = 0;
-                    Scan_index += 1;//스캔 각도 이동
-                    if(Scan_index >= 4){Scan_index = 0;}
-                }
-                if(Scan_timer >= Scan_stop_time - Scan_nice_time){return 1;}
-                //return 1;
-            }
-            else//공이 잡히다가 안잡힘
-            {
-                ptpos.PAN_POSITION = Scan_level[Scan_index];
-                send_ptmsg();
-                return 1;
-            }
+            // }
+            // else if(no_ball_cnt > 30)//공이 특정 시간동안 안잡힘
+            // {
+            //     ptpos.PAN_POSITION = Scan_level[Scan_index];
+            //     send_ptmsg();
+            //     Scan_timer += 1;
+            //     if(Scan_timer >= Scan_stop_time) //스캔한 시간이 임계값을 넘겼을 경우
+            //     {
+            //         Scan_timer = 0;
+            //         Scan_index += 1;//스캔 각도 이동
+            //         if(Scan_index >= 4){Scan_index = 0;}
+            //     }
+            //     if(Scan_timer >= Scan_stop_time - Scan_nice_time){return 1;}
+            //     //return 1;
+            // }
+            // else//공이 잡히다가 안잡힘
+            // {
+            //     ptpos.PAN_POSITION = Scan_level[Scan_index];
+            //     send_ptmsg();
+            //     return 1;
+            // }
+            ptpos.PAN_POSITION = 0;
+            send_ptmsg();
+            return 1;
             break;
 
         }
@@ -152,12 +155,12 @@ public:
         }
         case 99:
         {
-            //ERROR
-            error *= -1;
-            ptpos.PAN_POSITION = error * 100;
-            ptpos.TILT_POSITION = -45;
-            send_ptmsg();
-            break;
+            // //ERROR
+            // error *= -1;
+            // ptpos.PAN_POSITION = error * 100;
+            // ptpos.TILT_POSITION = -45;
+            // send_ptmsg();
+            // break;
         }
         default:
         {
@@ -184,7 +187,6 @@ private:
 
   void send_ptmsg()
   {
-    dxl.id = id;
     double pos2rad = ptpos.PAN_POSITION * (360 / 4096) * DEG2RAD;
     dxl.goal_position = (float)pos2rad;
     dxl.profile_velocity = velocity;

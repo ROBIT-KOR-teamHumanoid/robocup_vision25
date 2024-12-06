@@ -97,12 +97,15 @@ public:
   cv::Mat img;
   cv::Mat info;
 
-    Mat K_M = Mat(3, 3, CV_64FC1);
-    Mat D_M = Mat(1, 5, CV_64FC1);
-    Mat R_M = Mat(3, 3, CV_64FC1);
-    Mat P_M = Mat(3, 4, CV_64FC1);
+    Mat K_M = Mat::zeros(3, 3, CV_64FC1);
 
-    Mat NEW_K_M = Mat(3, 3, CV_64FC1);
+    Mat D_M = Mat::zeros(1, 5, CV_64FC1);
+
+    Mat R_M = Mat::zeros(3, 3, CV_64FC1);
+
+    Mat P_M = Mat::zeros(3, 4, CV_64FC1);
+
+    Mat NEW_K_M = Mat::zeros(3, 3, CV_64FC1);
 
     cv::Point2d new_focalLen;
     cv::Point2d new_prncPt;
