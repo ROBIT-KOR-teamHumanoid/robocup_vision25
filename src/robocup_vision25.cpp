@@ -39,11 +39,19 @@ robocup_vision25::robocup_vision25() : Node("robocup_vision25") {
         //   P_M = cv::Mat(3, 4, CV_64F, (void *)msg->p.data());
       });
 
+  visionSub =
+      this->create_subscription<humanoid_interfaces::msg::Master2vision25>(
+          "master2vision", 10,
+          std::bind(&robocup_vision25::master_callback, this,
+                    std::placeholders::_1));
+
   visionPub = this->create_publisher<humanoid_interfaces::msg::Robocupvision25>(
       "vision", 10);
   vision_feature_Pub =
       this->create_publisher<humanoid_interfaces::msg::Robocupvision25feature>(
           "vision_feature", 10);
+  Motor_Pub = this->create_publisher<dynamixel_rdk_msgs::msg::DynamixelMsgs>(
+      "pan_dxl", 10);
 
   RCLCPP_INFO(this->get_logger(), "robocup_vision25 node has been started.");
   RCLCPP_INFO(this->get_logger(), "Subscribed to topic: %s",
@@ -120,10 +128,12 @@ void robocup_vision25::image_callback(
   // prncPt = cv::Point2d(K_M.at<double>(0, 2), K_M.at<double>(1, 2));
 
   cam_nice_point = pan_tilt.mode(scan_value);  // 팬틸트 모드 변경
+  std::cout << "scan_value : " << scan_value << std::endl;
 
   Mat result_image = Image_processing(frame);
 
   publish_vision_msg();
+  publish_motor_msg();
 
   cv::imshow(image_topic.c_str(), result_image);
 
@@ -344,15 +354,11 @@ Mat robocup_vision25::Image_processing(const cv::Mat &img) {
       pan_tilt.target_x = ballPos.dist * sin(ballPos.theta * M_PI / 180);
       pan_tilt.target_y = ballPos.dist * cos(ballPos.theta * M_PI / 180);
       pan_tilt.target_absx =
-          pan_tilt.target_x *
-              cos((-1) * pan_tilt.ptpos.PAN_POSITION * M_PI / 180) -
-          pan_tilt.target_y *
-              sin((-1) * pan_tilt.ptpos.PAN_POSITION * M_PI / 180);
+          pan_tilt.target_x * cos((-1) * pan_tilt.ptpos.PAN_POSITION) -
+          pan_tilt.target_y * sin((-1) * pan_tilt.ptpos.PAN_POSITION);
       pan_tilt.target_absy =
-          pan_tilt.target_x *
-              sin((-1) * pan_tilt.ptpos.PAN_POSITION * M_PI / 180) +
-          pan_tilt.target_y *
-              cos((-1) * pan_tilt.ptpos.PAN_POSITION * M_PI / 180);
+          pan_tilt.target_x * sin((-1) * pan_tilt.ptpos.PAN_POSITION) +
+          pan_tilt.target_y * cos((-1) * pan_tilt.ptpos.PAN_POSITION);
 
       if (ball_filter_cnt < 30) {
         ball_filter_x[ball_filter_cnt] = ball_center_X;
@@ -464,12 +470,10 @@ Mat robocup_vision25::Image_processing(const cv::Mat &img) {
             focalLen, prncPt, Point(pts[i].x, pts[i].y));
         double line_x = linePos.dist * sin(linePos.theta * M_PI / 180);
         double line_y = linePos.dist * cos(linePos.theta * M_PI / 180);
-        double line_absx =
-            line_x * cos((-1) * pan_tilt.ptpos.PAN_POSITION * M_PI / 180) -
-            line_y * sin((-1) * pan_tilt.ptpos.PAN_POSITION * M_PI / 180);
-        double line_absy =
-            line_x * sin((-1) * pan_tilt.ptpos.PAN_POSITION * M_PI / 180) +
-            line_y * cos((-1) * pan_tilt.ptpos.PAN_POSITION * M_PI / 180);
+        double line_absx = line_x * cos((-1) * pan_tilt.ptpos.PAN_POSITION) -
+                           line_y * sin((-1) * pan_tilt.ptpos.PAN_POSITION);
+        double line_absy = line_x * sin((-1) * pan_tilt.ptpos.PAN_POSITION) +
+                           line_y * cos((-1) * pan_tilt.ptpos.PAN_POSITION);
 
         // 일정 거리 이상에 존재하는 특징점은 예외처리
         int remove_space_dis = 3000;
@@ -552,12 +556,10 @@ Mat robocup_vision25::Image_processing(const cv::Mat &img) {
         double robot_y = robotPos.dist * cos(robotPos.theta * M_PI / 180);
 
         // 로봇(obstacle)의 절대좌표 계산
-        robot_absx =
-            robot_x * cos((-1) * pan_tilt.ptpos.PAN_POSITION * M_PI / 180) -
-            robot_y * sin((-1) * pan_tilt.ptpos.PAN_POSITION * M_PI / 180);
-        robot_absy =
-            robot_x * sin((-1) * pan_tilt.ptpos.PAN_POSITION * M_PI / 180) +
-            robot_y * cos((-1) * pan_tilt.ptpos.PAN_POSITION * M_PI / 180);
+        robot_absx = robot_x * cos((-1) * pan_tilt.ptpos.PAN_POSITION) -
+                     robot_y * sin((-1) * pan_tilt.ptpos.PAN_POSITION);
+        robot_absy = robot_x * sin((-1) * pan_tilt.ptpos.PAN_POSITION) +
+                     robot_y * cos((-1) * pan_tilt.ptpos.PAN_POSITION);
 
         // visionMsg의 로봇 벡터 컨테이너에 데이터 저장
         visionMsg.robot_vec_x.push_back(robot_absx);
@@ -636,6 +638,33 @@ void robocup_vision25::publish_vision_msg() {
 
   visionMsg.robot_vec_x.clear();
   visionMsg.robot_vec_y.clear();
+}
+
+void robocup_vision25::publish_motor_msg() {
+  // PRE CONDITION : pan_tilt
+  // POST CONDITION : pan_tilt
+  // PURPOSE : 로봇의 팬틸트 모터를 제어하기 위한 데이터 PUBLISH
+
+  dynamixel_rdk_msgs::msg::DynamixelMsgs msg;
+  msg.goal_position = pan_tilt.ptpos.PAN_POSITION;
+  msg.profile_velocity = 0;
+  msg.profile_acceleration = 0;
+
+  Motor_Pub->publish(msg);
+}
+
+void robocup_vision25::master_callback(
+    const humanoid_interfaces::msg::Master2vision25::SharedPtr msg) {
+  if (ocam_error) {
+    scan_value = 99;
+  } else {
+    scan_value = msg->scanmode;
+  }
+
+  if (scan_value == 4) {
+    pan_tilt.ptpos.PAN_POSITION = msg->pan;
+    pan_tilt.ptpos.TILT_POSITION = TILT_D;
+  }
 }
 
 int main(int argc, char *argv[]) {
