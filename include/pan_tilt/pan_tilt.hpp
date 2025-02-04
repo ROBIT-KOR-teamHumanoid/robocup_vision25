@@ -47,7 +47,7 @@ class PAN_TILT : public rclcpp::Node {
   int Scan_index = 1;  // 0 ~ (size of Scan_level) - 1
   double Scan_level[4] = {-0.872665, 0, 0.872665, 0};  // 카메라 각도
   int Scan_timer = 0;
-  int Scan_stop_time = 15;  // 스캔속도 설정
+  int Scan_stop_time = 50;  // 스캔속도 설정
   int Scan_nice_time = 5;   // 카메라가 움직이기 직전 몇장을 이미지처리 할건지
   int Scan_nice_weight = 0;
 

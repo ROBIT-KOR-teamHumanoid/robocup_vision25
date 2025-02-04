@@ -419,6 +419,7 @@ class robocup_vision25 : public rclcpp::Node {
 
   humanoid_interfaces::msg::Robocupvision25 visionMsg;
   humanoid_interfaces::msg::Robocupvision25feature vision_feature_Msg;
+  dynamixel_rdk_msgs::msg::DynamixelMsgs pan_msg;
 
  private:
   void image_callback(const sensor_msgs::msg::Image::SharedPtr msg);

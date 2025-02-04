@@ -645,12 +645,15 @@ void robocup_vision25::publish_motor_msg() {
   // POST CONDITION : pan_tilt
   // PURPOSE : 로봇의 팬틸트 모터를 제어하기 위한 데이터 PUBLISH
 
-  dynamixel_rdk_msgs::msg::DynamixelMsgs msg;
-  msg.goal_position = pan_tilt.ptpos.PAN_POSITION;
-  msg.profile_velocity = 0;
-  msg.profile_acceleration = 0;
+  if (pan_msg.goal_position == pan_tilt.ptpos.PAN_POSITION) {
+    return;
+  }
 
-  Motor_Pub->publish(msg);
+  pan_msg.goal_position = pan_tilt.ptpos.PAN_POSITION;
+  pan_msg.profile_velocity = 0;
+  pan_msg.profile_acceleration = 0;
+
+  Motor_Pub->publish(pan_msg);
 }
 
 void robocup_vision25::master_callback(
