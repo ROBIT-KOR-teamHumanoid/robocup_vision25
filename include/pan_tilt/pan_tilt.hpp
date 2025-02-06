@@ -11,9 +11,9 @@
 #include "dynamixel_rdk_msgs/msg/dynamixel_status_msgs.hpp"
 #include "rclcpp/rclcpp.hpp"
 
-#define ROBOT_HEIGHT 600  // 490//475// 505//545// 755.0//544
-#define TILT_L 0          // 65.0//75.0
-#define TILT_D -49
+#define ROBOT_HEIGHT      400//490//475// 505//545// 755.0//544
+#define TILT_L              0//65.0//75.0
+#define TILT_D              -30
 #define DEG2RAD (M_PI / 180)
 #define RAD2DEG (180 / M_PI)
 #define PAN_MAX 150
@@ -46,7 +46,7 @@ class PAN_TILT : public rclcpp::Node {
   int temp_index = 1;
   double Scan_level[4] = {-0.872665, 0, 0.872665, 0};  // 카메라 각도
   int Scan_timer = 0;
-  int Scan_stop_time = 50;  // 스캔속도 설정
+  int Scan_stop_time = 30;  // 스캔속도 설정
   int Scan_nice_time = 5;   // 카메라가 움직이기 직전 몇장을 이미지처리 할건지
   int Scan_nice_weight = 0;
 
