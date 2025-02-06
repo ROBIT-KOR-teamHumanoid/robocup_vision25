@@ -5,8 +5,10 @@
 #include <memory>
 #include <random>
 
+#include "dynamixel_rdk_msgs/msg/dynamixel_bulk_read_msgs.hpp"
 #include "dynamixel_rdk_msgs/msg/dynamixel_control_msgs.hpp"
 #include "dynamixel_rdk_msgs/msg/dynamixel_msgs.hpp"
+#include "dynamixel_rdk_msgs/msg/dynamixel_status_msgs.hpp"
 #include "rclcpp/rclcpp.hpp"
 
 #define ROBOT_HEIGHT 600  // 490//475// 505//545// 755.0//544
@@ -24,27 +26,24 @@ using namespace std;
 class PAN_TILT : public rclcpp::Node {
  public:
   PAN_TILT() : Node("pan_tilt_node") {
-    motor_dxl_Publisher =
-        this->create_publisher<dynamixel_rdk_msgs::msg::DynamixelControlMsgs>(
-            "dynamixel_control2", 10);
-
     id = 32;
     ptpos.PAN_POSITION = 0;
     ptpos.TILT_POSITION = -45;
+    Motor_Pub = this->create_publisher<dynamixel_rdk_msgs::msg::DynamixelMsgs>(
+        "pan_dxl", 10);
   }
 
   PAN_TILT(int id_, double pan_init_) : Node("pan_tilt_node") {
-    motor_dxl_Publisher =
-        this->create_publisher<dynamixel_rdk_msgs::msg::DynamixelControlMsgs>(
-            "dynamixel_control2", 10);
-
     id = id_;
     ptpos.PAN_POSITION = pan_init_;
     ptpos.TILT_POSITION = 2048;
+    Motor_Pub = this->create_publisher<dynamixel_rdk_msgs::msg::DynamixelMsgs>(
+        "pan_dxl", 10);
   }
 
   // For Scan
   int Scan_index = 1;  // 0 ~ (size of Scan_level) - 1
+  int temp_index = 1;
   double Scan_level[4] = {-0.872665, 0, 0.872665, 0};  // 카메라 각도
   int Scan_timer = 0;
   int Scan_stop_time = 50;  // 스캔속도 설정
@@ -165,26 +164,22 @@ class PAN_TILT : public rclcpp::Node {
 
  protected:
  private:
-  rclcpp::Publisher<dynamixel_rdk_msgs::msg::DynamixelControlMsgs>::SharedPtr
-      motor_dxl_Publisher;
-  dynamixel_rdk_msgs::msg::DynamixelMsgs dxl;
-  dynamixel_rdk_msgs::msg::DynamixelControlMsgs dxl_control;
+  rclcpp::Publisher<dynamixel_rdk_msgs::msg::DynamixelMsgs>::SharedPtr
+      Motor_Pub;
+  dynamixel_rdk_msgs::msg::DynamixelMsgs pan_msg;
 
   int id = 32;
   float velocity = 1;
   float acceleration = -1;
 
   void send_ptmsg() {
-    // double pos2rad = ptpos.PAN_POSITION * (360 / 4096) * DEG2RAD;
-    // dxl.goal_position = (float)pos2rad;
-    // dxl.profile_velocity = velocity;
-    // dxl.profile_acceleration = acceleration;
-
-    // dxl_control.motor_control.push_back(dxl);
-
-    // motor_dxl_Publisher->publish(dxl_control);
-
-    // dxl_control.motor_control.clear();
+    if (Scan_index != temp_index) {
+      ptpos.PAN_POSITION = Scan_level[Scan_index];
+      temp_index = Scan_index;
+    } else {
+      return;
+    }
+    publish_motor_msg();
   }
 
   void init() {
@@ -229,6 +224,18 @@ class PAN_TILT : public rclcpp::Node {
     }  // 거리가 500이 넘으면 팬 각도 정면으로 설정
     ptpos.PAN_POSITION = Scan_level[Scan_index];  // 모터 제어를 위해 값 전송
     send_ptmsg();                                 // 팬틸트 데이터 msg 전송
+  }
+
+  void publish_motor_msg() {
+    // PRE CONDITION : pan_tilt
+    // POST CONDITION : pan_tilt
+    // PURPOSE : 로봇의 팬틸트 모터를 제어하기 위한 데이터 PUBLISH
+
+    pan_msg.goal_position = ptpos.PAN_POSITION;
+    pan_msg.profile_velocity = 0;
+    pan_msg.profile_acceleration = 0;
+
+    Motor_Pub->publish(pan_msg);
   }
 };
 

@@ -50,8 +50,6 @@ robocup_vision25::robocup_vision25() : Node("robocup_vision25") {
   vision_feature_Pub =
       this->create_publisher<humanoid_interfaces::msg::Robocupvision25feature>(
           "vision_feature", 10);
-  Motor_Pub = this->create_publisher<dynamixel_rdk_msgs::msg::DynamixelMsgs>(
-      "pan_dxl", 10);
 
   RCLCPP_INFO(this->get_logger(), "robocup_vision25 node has been started.");
   RCLCPP_INFO(this->get_logger(), "Subscribed to topic: %s",
@@ -100,7 +98,7 @@ robocup_vision25::robocup_vision25() : Node("robocup_vision25") {
   cout << str_list << endl;
 
   timer_ = this->create_wall_timer(
-      500ms, std::bind(&robocup_vision25::timerCallback, this));
+      100ms, std::bind(&robocup_vision25::timerCallback, this));
 }
 
 robocup_vision25::~robocup_vision25() { cv::destroyAllWindows(); }
@@ -128,12 +126,10 @@ void robocup_vision25::image_callback(
   // prncPt = cv::Point2d(K_M.at<double>(0, 2), K_M.at<double>(1, 2));
 
   cam_nice_point = pan_tilt.mode(scan_value);  // 팬틸트 모드 변경
-  std::cout << "scan_value : " << scan_value << std::endl;
 
   Mat result_image = Image_processing(frame);
 
   publish_vision_msg();
-  publish_motor_msg();
 
   cv::imshow(image_topic.c_str(), result_image);
 
@@ -638,22 +634,6 @@ void robocup_vision25::publish_vision_msg() {
 
   visionMsg.robot_vec_x.clear();
   visionMsg.robot_vec_y.clear();
-}
-
-void robocup_vision25::publish_motor_msg() {
-  // PRE CONDITION : pan_tilt
-  // POST CONDITION : pan_tilt
-  // PURPOSE : 로봇의 팬틸트 모터를 제어하기 위한 데이터 PUBLISH
-
-  if (pan_msg.goal_position == pan_tilt.ptpos.PAN_POSITION) {
-    return;
-  }
-
-  pan_msg.goal_position = pan_tilt.ptpos.PAN_POSITION;
-  pan_msg.profile_velocity = 0;
-  pan_msg.profile_acceleration = 0;
-
-  Motor_Pub->publish(pan_msg);
 }
 
 void robocup_vision25::master_callback(

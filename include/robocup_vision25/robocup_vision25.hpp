@@ -415,11 +415,9 @@ class robocup_vision25 : public rclcpp::Node {
   // For Ros Topic
   void publish_vision_msg();
   void publish_localization_msg();
-  void publish_motor_msg();
 
   humanoid_interfaces::msg::Robocupvision25 visionMsg;
   humanoid_interfaces::msg::Robocupvision25feature vision_feature_Msg;
-  dynamixel_rdk_msgs::msg::DynamixelMsgs pan_msg;
 
  private:
   void image_callback(const sensor_msgs::msg::Image::SharedPtr msg);
@@ -440,8 +438,6 @@ class robocup_vision25 : public rclcpp::Node {
       visionPub;
   rclcpp::Publisher<humanoid_interfaces::msg::Robocupvision25feature>::SharedPtr
       vision_feature_Pub;
-  rclcpp::Publisher<dynamixel_rdk_msgs::msg::DynamixelMsgs>::SharedPtr
-      Motor_Pub;
 };
 
 #endif  // ROBOCUP_VISION25_HPP
