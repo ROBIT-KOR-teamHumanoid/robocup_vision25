@@ -11,9 +11,9 @@
 #include "dynamixel_rdk_msgs/msg/dynamixel_status_msgs.hpp"
 #include "rclcpp/rclcpp.hpp"
 
-#define ROBOT_HEIGHT      400//490//475// 505//545// 755.0//544
-#define TILT_L              0//65.0//75.0
-#define TILT_D              -30
+#define ROBOT_HEIGHT 400  // 490//475// 505//545// 755.0//544
+#define TILT_L 0          // 65.0//75.0
+#define TILT_D -30
 #define DEG2RAD (M_PI / 180)
 #define RAD2DEG (180 / M_PI)
 #define PAN_MAX 150
@@ -78,6 +78,7 @@ class PAN_TILT : public rclcpp::Node {
     switch (value) {
       case 1: {
         // Oper_pan_tilt
+        ptpos.PAN_POSITION = Scan_level[1];
         send_ptmsg();
         return 1;
         break;
@@ -147,12 +148,20 @@ class PAN_TILT : public rclcpp::Node {
         break;
       }
       case 99: {
-        // //ERROR
-        // error *= -1;
-        // ptpos.PAN_POSITION = error * 100;
-        // ptpos.TILT_POSITION = -45;
-        // send_ptmsg();
-        // break;
+        // ERROR
+
+        if (Scan_index == 0) {
+          Scan_index == 3;
+        } else if (Scan_index == 3) {
+          Scan_index == 0;
+        } else {
+          Scan_index = 0;
+        }
+        error *= -1;
+        ptpos.PAN_POSITION = error * 100;
+        ptpos.TILT_POSITION = -45;
+        send_ptmsg();
+        break;
       }
       default: {
         init();
