@@ -59,20 +59,20 @@ robocup_vision25::robocup_vision25() : Node("robocup_vision25") {
 
   // focalLen(257.919929, 261.486213);
 
-  focalLen.x = 257.919929;
-  focalLen.y = 261.486213;
-  prncPt.x = 314.471665;
-  prncPt.y = 255.536946;
+  focalLen.x = 260.05782;
+  focalLen.y = 262.8844;
+  prncPt.x = 299.10624;
+  prncPt.y = 247.54118;
 
-  K_M.at<double>(0, 0) = 257.919929;
-  K_M.at<double>(1, 1) = 261.486213;
-  K_M.at<double>(0, 2) = 314.471665;
-  K_M.at<double>(1, 2) = 255.536946;
+  K_M.at<double>(0, 0) = 260.05782;
+  K_M.at<double>(1, 1) = 262.8844;
+  K_M.at<double>(0, 2) = 299.10624;
+  K_M.at<double>(1, 2) = 247.54118;
   K_M.at<double>(2, 2) = 1;
-  D_M.at<double>(0, 0) = -0.171346;
-  D_M.at<double>(0, 1) = 0.018811;
-  D_M.at<double>(0, 2) = 0.000756;
-  D_M.at<double>(0, 3) = 0.000561;
+  D_M.at<double>(0, 0) = -0.180720;
+  D_M.at<double>(0, 1) = 0.021304;
+  D_M.at<double>(0, 2) = 0.002004;
+  D_M.at<double>(0, 3) = -0.000257;
   D_M.at<double>(0, 4) = 0.000000;
   R_M.at<double>(0, 0) = 1.0;
   R_M.at<double>(1, 1) = 1.0;
@@ -82,11 +82,17 @@ robocup_vision25::robocup_vision25() : Node("robocup_vision25") {
   P_M.at<double>(1, 1) = 210.82758;
   P_M.at<double>(1, 2) = 266.48742;
   P_M.at<double>(2, 2) = 1.0;
-  NEW_K_M.at<double>(0, 0) = 257.919929;
-  NEW_K_M.at<double>(1, 1) = 261.486213;
-  NEW_K_M.at<double>(0, 2) = 314.471665;
-  NEW_K_M.at<double>(1, 2) = 255.536946;
-  NEW_K_M.at<double>(2, 2) = 1;
+
+  NEW_K_M =
+      getOptimalNewCameraMatrix(K_M, D_M, Size(640, 480), 1, Size(640, 480), 0);
+
+  // NEW_K_M.at<double>(0, 0) = 257.919929;
+  // NEW_K_M.at<double>(1, 1) = 261.486213;
+  // NEW_K_M.at<double>(0, 2) = 314.471665;
+  // NEW_K_M.at<double>(1, 2) = 255.536946;
+  // NEW_K_M.at<double>(2, 2) = 1;
+
+  std::cout << NEW_K_M << std::endl;
 
   // cv::Point2d prncPt(314.471665, 255.536946);
 
